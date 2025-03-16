@@ -4,28 +4,19 @@ import json
 import os
 import mysql.connector
 
-
-
 app = Flask(__name__)
 CORS(app)
 
-MESSAGE_FILE = "messages.json"
-
-
-if not os.path.exists(MESSAGE_FILE):
-    with open(MESSAGE_FILE, "w") as f:
-        json.dump([], f)
-
-
+# ✅ 远程 MySQL 服务器信息（使用你的数据库信息）
 def get_db_connection():
     return mysql.connector.connect(
-        host="localhost",
-        user="root", 
-        password="FIT5120TP14",  
-        database="SunscreenTracker"
+        host=os.environ.get("MYSQL_HOST", "your-cloud-mysql.com"),
+        user=os.environ.get("MYSQL_USER", "your_user"),
+        password=os.environ.get("MYSQL_PASSWORD", "your_password"),
+        database=os.environ.get("MYSQL_DATABASE", "SunscreenTracker")
     )
 
-
+# ✅ UV 数据 API
 @app.route('/api/uv', methods=['GET'])
 def get_uv_index():
     location = request.args.get('location', '').title()
@@ -42,7 +33,6 @@ def get_uv_index():
         """, (location,))
         data = cursor.fetchone()
 
-       
         uv_level = "Unknown"
         if data and data["UVIndex"] is not None:
             if data["UVIndex"] > 7:
@@ -55,7 +45,7 @@ def get_uv_index():
         result = {
             "location": data["Suburb"] if data else location,
             "uv_index": data["UVIndex"] if data else "N/A",
-            "level": uv_level, 
+            "level": uv_level,
             "date": str(data["Date"]) if data else "N/A",
             "time": str(data["Time"]) if data else "N/A"
         }
@@ -67,14 +57,15 @@ def get_uv_index():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-
+# ✅ 简单的留言 API
 @app.route('/api/messages', methods=['GET', 'POST'])
 def messages():
+    MESSAGE_FILE = "messages.json"
+    
     if request.method == 'GET':
         try:
-          
-            if os.path.exists("messages.json"):
-                with open("messages.json", "r") as f:
+            if os.path.exists(MESSAGE_FILE):
+                with open(MESSAGE_FILE, "r") as f:
                     messages = json.load(f)
             else:
                 messages = []
@@ -94,9 +85,8 @@ def messages():
             if not name or not email or not message:
                 return jsonify({"error": "Missing fields"}), 400
 
-          
-            if os.path.exists("messages.json"):
-                with open("messages.json", "r") as f:
+            if os.path.exists(MESSAGE_FILE):
+                with open(MESSAGE_FILE, "r") as f:
                     messages = json.load(f)
             else:
                 messages = []
@@ -104,8 +94,7 @@ def messages():
             new_message = {"name": name, "email": email, "message": message}
             messages.append(new_message)
 
-            
-            with open("messages.json", "w") as f:
+            with open(MESSAGE_FILE, "w") as f:
                 json.dump(messages, f, indent=4)
 
             return jsonify({"message": "Message saved successfully!"}), 200
@@ -113,8 +102,7 @@ def messages():
         except Exception as e:
             return jsonify({"error": str(e)}), 500
 
-
-
-port = int(os.environ.get("PORT", 8080))  # 读取 PORT 变量
+# ✅ 让 Flask 监听 0.0.0.0（云端必须）
+port = int(os.environ.get("PORT", 8080))
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=port, debug=False)  # 确保监听 0.0.0.0
+    app.run(host="0.0.0.0", port=port, debug=False)
