@@ -10,9 +10,9 @@ CORS(app)
 # ✅ 远程 MySQL 服务器信息（使用你的数据库信息）
 def get_db_connection():
     return mysql.connector.connect(
-        host=os.environ.get("MYSQL_HOST", "your-cloud-mysql.com"),
-        user=os.environ.get("MYSQL_USER", "your_user"),
-        password=os.environ.get("MYSQL_PASSWORD", "your_password"),
+        host=os.environ.get("MYSQL_HOST", "localhost"),
+        user=os.environ.get("MYSQL_USER", "root"),
+        password=os.environ.get("MYSQL_PASSWORD", "FIT5120TP14"),
         database=os.environ.get("MYSQL_DATABASE", "SunscreenTracker")
     )
 
