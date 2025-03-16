@@ -115,6 +115,6 @@ def messages():
 
 
 
-port = int(os.environ.get("PORT", 8080))  # 读取环境变量 PORT，如果没有就用 5000
+port = int(os.environ.get("PORT", 8080))  # 读取 PORT 变量
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=port, debug=True)
+    app.run(host="0.0.0.0", port=port, debug=False)  # 确保监听 0.0.0.0
